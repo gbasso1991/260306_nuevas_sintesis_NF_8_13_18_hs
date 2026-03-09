@@ -63,10 +63,10 @@ un_solo_fondo=1
 resto_fondo=1
 templog = 1
 N_espiras_bob_captora=1
-nombre='*NF@cit 18h'
+nombre='*NF@cit 18h full concentrada'
 Analisis_de_Fourier = 1 # sobre las señales, imprime espectro de señal muestra
-N_armonicos_impares = 11
-concentracion =(28.37)*1e3 #[concentracion]= g/m^3 (1 g/l == 1e3 g/m^3) (Default = 10000 g/m^3)
+N_armonicos_impares = 15
+concentracion =(56.4)*1e3 #[concentracion]= g/m^3 (1 g/l == 1e3 g/m^3) (Default = 10000 g/m^3)
 capsula_glucosa=0   # capsula para solventes organicos
 detector_ciclos_descartables=True #en funcion a Mag max para evitar guardar/promediar con ciclos in/out
 Ciclo_promedio=1
@@ -125,6 +125,7 @@ print(f'''
       Concentracion: {concentracion/1000} g/l
       ''','\n','-'*60)
 
+
 #%%Defino listas para almacenar datos en cada iteracion
 long_arrays=[]
 Ciclos_eje_H = []
@@ -177,7 +178,7 @@ if todos==1: #Leo todos los archivos del directorio
     path_m = [os.path.join(directorio,f) for f in fnames_m] #todos los demas
 
     for idx_m, m in enumerate(fnames_m):
-        print(idx_m,'-',m)
+        print(str(idx_m).zfill(2),'-',m)
     print('.'*40)
     print('Archivos de fondo en el directorio:\n')
     for idx_f,f in enumerate(fnames_f):
@@ -210,7 +211,6 @@ for i in range(len(fnames_m)):
 
 
 #%% TEMPLOG --> FECHA POSTA E INTERPOLACION DE LA TEMPERATURA (18 Jul 24)
-
 # Levanto hora guardada en los archivos 
 Fechas_from_file = []
 Fechas_from_file_descancelacion=[]
@@ -220,7 +220,6 @@ for k in range(len(fnames_m)):
         fecha_in_file = f.readline()
         Fechas_from_file.append(fecha_in_file.split()[-1])
         
-#%%
 with open(path_m[-1], 'r') as f:
     fecha_in_file_f = f.readline().split()[-1]
     Fechas_from_file_descancelacion.append(fecha_in_file_f)
@@ -244,21 +243,30 @@ if templog:
 
         time_m = np.round(delta_0 + np.cumsum(time_delta),2)
         temp_m = np.array([temperatura_interpolada[np.flatnonzero(tiempo_interpolado==t)[0]] for t in time_m])
-
+        WRate= (temp_m[-1]-temp_m[0])/(time_m[-1]-time_m[0])
+        concentracion_gL = concentracion/1000
+        ecSAR= WRate*4186/concentracion_gL
+        
+        texto_templog = rf'$\Delta$t = {time_m[-1]-time_m[0]:.2f} s'+'\n'+f'$\Delta$T = {temp_m[-1]-temp_m[0]:.2f} °C'+f'\nWR = {WRate:.2f} °C/s\necSAR = {ecSAR:.2f} W/g'
+        
+        
         cmap = mpl.colormaps['viridis'] #'viridis'
         normalized_temperaturas = (np.array(temp_m) - np.array(temp_m).min()) / (np.array(temp_m).max() - np.array(temp_m).min())
         colors = cmap(normalized_temperaturas)
 
-        figtemp,ax=plt.subplots(figsize=(10,5.5),constrained_layout=True)
+        figtemp,ax=plt.subplots(figsize=(10,5),constrained_layout=True)
         ax.plot(t_full,T_full,'.-',label='Templog (Rugged O201)')
         ax.plot(tiempo_interpolado,temperatura_interpolada,'-',label='Temperatura interpolada')
         ax.scatter(time_m,temp_m,color=colors,label='Temperatura muestra')
-
+        ax.text(0.1,0.9,texto_templog,
+                bbox=dict(color='C4',alpha=0.8),
+                ha='left',va='top',
+                transform=ax.transAxes,fontsize=12)
         plt.xlabel('t (s)')
         plt.ylabel('T (°C)')
         plt.legend(loc='lower right')
         plt.grid()
-        plt.title('Temperatura de la muestra',fontsize=18)
+        plt.title('Temperatura - Warming Rate - ecSAR',fontsize=18)
         plt.savefig(os.path.join(output_dir,os.path.commonprefix(fnames_m)+'_templog.png'),dpi=300,facecolor='w')
         plt.show()
 
@@ -1239,25 +1247,6 @@ else:
     plt.suptitle(r'H$_C$ - M$_R$ - $\chi_{M=0}$ - M$_{max}$',fontsize=15)
     plt.savefig(os.path.join(output_dir,os.path.commonprefix(list(fnames_m))+'_Hc_Mr_xi_vs_indx.png'),dpi=300,facecolor='w')
     
-#%% Printeo Resultados del analisis
-print('='*50)
-print(f'Resultados analisis {fecha_graf}\n')
-print(f'Concentracion {concentracion/1000} g/L\n')
-
-print(f'''tau = {tau_all:.1f} ns
-SAR = {SAR_all:.0f} W/g
-dphi = {defasaje_all} rad
-
-Campo Coercitivo = {Coercitividad_all:.2f} kA/m
-Mag Remanente = {Remanencia_all:.0f} A/m
-Mag maxima = {Mag_max_emu:.2f} emu/g
-Susceptibilidad a M=0 = {xi_all:.e}''')
-print('='*50)
-
-#%%%
-end_time = time.time()
-print(f'Tiempo de ejecución del script: {(end_time-start_time):6.3f} s.')
-
 
 
 # %%
@@ -1319,5 +1308,32 @@ if Analisis_de_Fourier==1:
     plt.title(fecha_graf + f'   {N_armonicos_impares} arm impares', loc='left', fontsize=13)
     plt.suptitle('Evolucion de ciclos de histéresis (filtrado impar)', fontsize=20)
     plt.savefig(os.path.join(output_dir, os.path.commonprefix(list(fnames_m))+'_evolucion_ciclos_MH.png'), dpi=300, facecolor='w')
-    plt.show()
 
+    plt.show()
+    
+    
+figtemp    
+#%% Printeo Resultados del analisis
+print('='*50)
+print(f'Resultados analisis {fecha_graf}\n')
+print(f'Concentracion {concentracion_gL} g/L\n')
+
+print(f'''tau = {tau_all:.1f} ns
+SAR = {SAR_all:.0f} W/g
+dphi = {defasaje_all} rad
+
+Campo Coercitivo = {Coercitividad_all:.2f} kA/m
+Mag Remanente = {Remanencia_all:.0f} A/m
+Mag maxima = {Mag_max_emu:.2f} emu/g
+Susceptibilidad a M=0 = {xi_all:.e}''')
+
+if templog:
+    print(f'\ndT = {temp_m[-1]-temp_m[0]:.2f} °C\ndt = {time_m[-1]-time_m[0]:.2f} s')
+    print(f'Raw Warming Rate = {WRate:.2f} °C/s')
+    print(f'ecSAR = {ecSAR:.0f} W/g')
+
+print('='*50)
+
+#%%%
+end_time = time.time()
+print(f'Tiempo de ejecución del script: {(end_time-start_time):6.3f} s.')
