@@ -1,0 +1,18 @@
+#260304_143608
+--------------- Parametros de muestra ---------------
+ Nombre muestra: NF8hCitrato_muestra_260304_143553
+ Factor dilución: 5000.0
+ Número alícuotas: 1
+-------------------- Calibracion --------------------
+ Fondo calibracion I0_cal= 4471.16 cuentas 
+ Pendiente = 8.572e+01 
+ Ordenada = -3.100e-02
+---------------------- Medida ----------------------
+ Fondo I0 = 4462.86 cuentas
+
+Intensidad (I) | Absorbancia (A) 
+   1788.86 3.970e-01
+   1837.73 3.853e-01
+   1852.39 3.819e-01
+
+Concentracion de la muestra: (2.445+/-0.057)e+01 g/L
