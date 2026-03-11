@@ -969,4 +969,45 @@ names=['ciclos_promedio_NF5_NF10',
 for i,e in enumerate(zip(figs,names)):
     e[0].savefig(f'{i}_{e[1]}.png',dpi=300)
 
-# %%
+# %% Ploteo ciclos internos
+_,_,_, H_08_100,M_08_100,_ = lector_ciclos(ciclos_08[1])
+_,_,_, H_08_125,M_08_125,_ = lector_ciclos(ciclos_08[4])
+_,_,_, H_08_150,M_08_150,_ = lector_ciclos(ciclos_08[7])
+
+_,_,_, H_13_100,M_13_100,_ = lector_ciclos(ciclos_13[1])
+_,_,_, H_13_125,M_13_125,_ = lector_ciclos(ciclos_13[4])
+_,_,_, H_13_150,M_13_150,_ = lector_ciclos(ciclos_13[8])
+
+_,_,_, H_18_100,M_18_100,_ = lector_ciclos(ciclos_18[1])
+_,_,_, H_18_120,M_18_120,_ = lector_ciclos(ciclos_18[6])
+_,_,_, H_18_150,M_18_150,_ = lector_ciclos(ciclos_18[17])
+
+fig40, (ax,ax2,ax3) =plt.subplots(1,3,figsize=(15,5),constrained_layout=True,sharey=True,sharex=False)
+
+ax.plot(H_08_100/1000,M_08_100,'-',label='38')
+ax.plot(H_08_125/1000,M_08_125,'-',label='47')
+ax.plot(H_08_150/1000,M_08_150,'-',label='57')
+
+ax2.plot(H_13_100/1000,M_13_100,'-',label='38')
+ax2.plot(H_13_125/1000,M_13_125,'-',label='47')
+ax2.plot(H_13_150/1000,M_13_150,'-',label='57')
+
+ax3.plot(H_18_100/1000,M_18_100,'-',label='38')
+ax3.plot(H_18_120/1000,M_18_120,'-',label='45')
+ax3.plot(H_18_150/1000,M_18_150,'-',label='57')
+
+        
+ax.set_ylabel('M (A/m)')
+ax.set_title(f'08 hs   C={conc_08:0.1f} g/L',loc='left')
+ax2.set_title(f'13 hs   C={conc_13:0.1f} g/L',loc='left')
+ax3.set_title(f'18 hs   C={conc_18:0.1f} g/L',loc='left')
+
+ax.set_xticks([-57,-47,-38,0,38,47,57])
+ax2.set_xticks([-57,-47,-38,0,38,47,57])
+ax3.set_xticks([-57,-45,-38,0,38,45,57])
+for a in ax,ax2,ax3:
+    a.grid()
+    a.set_xlabel('H (kA/m)')
+    a.legend(title='H$_0$ (kA/m)',loc='upper left')
+plt.suptitle('Comparativa ciclos promedio NF@cit\n300 kHz')
+plt.savefig('0_comparativa_ciclos_internos_08_13_18_hs.png',dpi=300)
